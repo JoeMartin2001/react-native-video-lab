@@ -277,6 +277,17 @@ RCT_EXPORT_MODULE()
 
 
 // TS: applyFilter(path: string, filter: 'sepia' | 'mono' | 'invert'): Promise<string>
+// - (void)applyFilter:(NSString *)path
+//              filter:(NSString *)filter
+//             resolve:(RCTPromiseResolveBlock)resolve
+//              reject:(RCTPromiseRejectBlock)reject
+// {
+//   NSLog(@"[VideoLab] applyFilter called with path: %@, filter: %@", path, filter);
+
+//   NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"filtered.mp4"];
+//   resolve(outputPath);
+// }
+
 - (void)applyFilter:(NSString *)path
              filter:(NSString *)filter
             resolve:(RCTPromiseResolveBlock)resolve
@@ -284,8 +295,73 @@ RCT_EXPORT_MODULE()
 {
   NSLog(@"[VideoLab] applyFilter called with path: %@, filter: %@", path, filter);
 
-  NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"filtered.mp4"];
-  resolve(outputPath);
+  NSURL *videoURL = [NSURL URLWithString:path];
+  if (![videoURL isFileURL]) {
+    videoURL = [NSURL fileURLWithPath:path];
+  }
+
+  AVAsset *asset = [AVAsset assetWithURL:videoURL];
+  if (!asset) {
+    reject(@"LOAD_ERROR", @"Failed to load video asset", nil);
+    return;
+  }
+
+  // Create composition with filter
+  AVVideoComposition *videoComposition =
+    [AVVideoComposition videoCompositionWithAsset:asset applyingCIFiltersWithHandler:^(AVAsynchronousCIImageFilteringRequest *request) {
+        @autoreleasepool {
+        CIImage *source = request.sourceImage;
+
+        CIFilter *ciFilter = nil;
+        if ([filter isEqualToString:@"sepia"]) {
+            ciFilter = [CIFilter filterWithName:@"CISepiaTone"];
+            [ciFilter setDefaults];
+            [ciFilter setValue:source forKey:kCIInputImageKey];
+            [ciFilter setValue:@(1.0) forKey:kCIInputIntensityKey];
+        } else if ([filter isEqualToString:@"mono"]) {
+            ciFilter = [CIFilter filterWithName:@"CIPhotoEffectMono"];
+            [ciFilter setDefaults];
+            [ciFilter setValue:source forKey:kCIInputImageKey];
+        } else if ([filter isEqualToString:@"invert"]) {
+            ciFilter = [CIFilter filterWithName:@"CIColorInvert"];
+            [ciFilter setDefaults];
+            [ciFilter setValue:source forKey:kCIInputImageKey];
+        }
+
+        if (ciFilter) {
+            CIImage *output = [ciFilter outputImage];
+            [request finishWithImage:output context:nil];
+        } else {
+            [request finishWithImage:source context:nil];
+        }
+        }
+    }];
+
+
+  // Export with filter
+  NSString *uuid = [[NSUUID UUID] UUIDString];
+  NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"filtered-%@.mp4", uuid]];
+  NSURL *outputURL = [NSURL fileURLWithPath:outputPath];
+  [[NSFileManager defaultManager] removeItemAtURL:outputURL error:nil];
+
+  AVAssetExportSession *exportSession =
+    [[AVAssetExportSession alloc] initWithAsset:asset
+                                     presetName:AVAssetExportPresetHighestQuality];
+  exportSession.outputURL = outputURL;
+  exportSession.outputFileType = AVFileTypeMPEG4;
+  exportSession.videoComposition = videoComposition;
+
+  [exportSession exportAsynchronouslyWithCompletionHandler:^{
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if (exportSession.status == AVAssetExportSessionStatusCompleted) {
+        NSLog(@"[VideoLab] ✅ Filter applied: %@", outputPath);
+        resolve(outputPath);
+      } else {
+        NSLog(@"[VideoLab] ❌ Filter failed: %@", exportSession.error);
+        reject(@"EXPORT_FAILED", @"Failed to apply filter", exportSession.error);
+      }
+    });
+  }];
 }
 
 @end

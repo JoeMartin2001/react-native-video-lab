@@ -5,11 +5,13 @@ import { TrimVideoView } from './components/trim';
 import { RadioButton } from './components/RadioButton';
 import { MergeVideoView } from './components/merge';
 import { AddAudioView } from './components/add-audio';
+import { ApplyFilterView } from './components/apply-filter';
 
 const VideoLabMode = {
   Trim: 'Trim',
   Merge: 'Merge',
   AddAudio: 'AddAudio',
+  ApplyFilter: 'ApplyFilter',
 } as const;
 
 export default function App() {
@@ -48,6 +50,9 @@ export default function App() {
 
           {/* Add Audio Section */}
           {videoLabMode === VideoLabMode.AddAudio && <AddAudioView />}
+
+          {/* Apply Filter Section */}
+          {videoLabMode === VideoLabMode.ApplyFilter && <ApplyFilterView />}
         </ScrollView>
       </SafeAreaView>
     </SafeAreaProvider>

@@ -25,7 +25,9 @@ export const RadioButton = (props: Props) => {
             ? 'Cut video to specific duration'
             : title === 'Merge'
               ? 'Combine multiple videos'
-              : 'Add audio track to video'}
+              : title === 'AddAudio'
+                ? 'Add audio track to video'
+                : 'Apply visual effects and filters'}
         </Text>
       </View>
       <View style={[styles.radioButton, isActive && styles.radioButtonActive]}>
