@@ -24,10 +24,6 @@ RCT_EXPORT_MODULE()
 {
   NSLog(@"[VideoLab] trim called with path: %@, start: %f, end: %f", path, start, end);
 
-//   // Placeholder: return fake output path
-//   NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"trimmed.mp4"];
-//   resolve(outputPath);
-
   // Convert JS uri into NSURL
   NSURL *sourceURL = [NSURL URLWithString:path];
   if (![sourceURL isFileURL]) {
@@ -79,9 +75,6 @@ RCT_EXPORT_MODULE()
        reject:(RCTPromiseRejectBlock)reject
 {
   NSLog(@"[VideoLab] merge called with paths: %@", paths);
-
-//   NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"merged.mp4"];
-//   resolve(outputPath);
 
   if (paths.count == 0) {
     reject(@"NO_INPUT", @"No video paths provided", nil);
@@ -143,7 +136,7 @@ RCT_EXPORT_MODULE()
     currentTime = CMTimeAdd(currentTime, asset.duration);
   }
 
-  // Export merged video
+  // Export merged video with a unique name
   NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"merged.mp4"];
   NSURL *outputURL = [NSURL fileURLWithPath:outputPath];
   [[NSFileManager defaultManager] removeItemAtURL:outputURL error:nil];
@@ -168,7 +161,7 @@ RCT_EXPORT_MODULE()
   }];
 }
 
-// TS: addAudio(videoPath: string, audioPath: string): Promise<string>
+// TS: addAudio(videoPath: string, audioPath: string, mode: 'replace' | 'mix'): Promise<string>
 - (void)addAudio:(NSString *)videoPath
        audioPath:(NSString *)audioPath
             mode:(NSString *)mode   // 👈 new argument: "replace" or "mix"
@@ -275,19 +268,7 @@ RCT_EXPORT_MODULE()
   }];
 }
 
-
 // TS: applyFilter(path: string, filter: 'sepia' | 'mono' | 'invert'): Promise<string>
-// - (void)applyFilter:(NSString *)path
-//              filter:(NSString *)filter
-//             resolve:(RCTPromiseResolveBlock)resolve
-//              reject:(RCTPromiseRejectBlock)reject
-// {
-//   NSLog(@"[VideoLab] applyFilter called with path: %@, filter: %@", path, filter);
-
-//   NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"filtered.mp4"];
-//   resolve(outputPath);
-// }
-
 - (void)applyFilter:(NSString *)path
              filter:(NSString *)filter
             resolve:(RCTPromiseResolveBlock)resolve
