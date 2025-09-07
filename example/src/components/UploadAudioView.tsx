@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import DocumentPicker from 'react-native-document-picker';
+import { pick } from '@react-native-documents/picker';
 
 type Props = {
   label?: string;
@@ -18,8 +18,8 @@ export const UploadAudioView = (props: Props) => {
     setIsUploading(true);
 
     try {
-      const res = await DocumentPicker.pickSingle({
-        type: [DocumentPicker.types.audio],
+      const [res] = await pick({
+        type: 'audio',
       });
 
       setAudioUri(res.uri);
@@ -27,11 +27,7 @@ export const UploadAudioView = (props: Props) => {
 
       console.log('Picked audio:', res.uri);
     } catch (err) {
-      if (DocumentPicker.isCancel(err)) {
-        console.log('User cancelled');
-      } else {
-        throw err;
-      }
+      console.error('Error picking audio:', err);
     } finally {
       setIsUploading(false);
     }

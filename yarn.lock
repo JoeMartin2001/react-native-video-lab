@@ -3061,6 +3061,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-documents/picker@npm:^10.1.5":
+  version: 10.1.5
+  resolution: "@react-native-documents/picker@npm:10.1.5"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: d92f97bcfb67328d1b73668e5f1aff8cf572d4b4c3b590258a365131344427d424baceea7549482bc9fb8cadf019386929fca1386f3b515f3af35d5af6e00497
+  languageName: node
+  linkType: hard
+
 "@react-native/assets-registry@npm:0.81.1":
   version: 0.81.1
   resolution: "@react-native/assets-registry@npm:0.81.1"
@@ -10239,22 +10249,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-document-picker@npm:^9.3.1":
-  version: 9.3.1
-  resolution: "react-native-document-picker@npm:9.3.1"
-  dependencies:
-    invariant: ^2.2.4
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-    react-native-windows: "*"
-  peerDependenciesMeta:
-    react-native-windows:
-      optional: true
-  checksum: 5979e4b93f15e0568ae70b70cc2304cd727f20939a58412d483517942df6d3cf3821319b3b7934bcaa2866ed1918ef9e8de9933ce6953209340abe3455403e0d
-  languageName: node
-  linkType: hard
-
 "react-native-image-picker@npm:^8.2.1":
   version: 8.2.1
   resolution: "react-native-image-picker@npm:8.2.1"
@@ -10295,6 +10289,7 @@ __metadata:
     "@react-native-community/cli": 20.0.0
     "@react-native-community/cli-platform-android": 20.0.0
     "@react-native-community/cli-platform-ios": 20.0.0
+    "@react-native-documents/picker": ^10.1.5
     "@react-native/babel-preset": 0.81.1
     "@react-native/metro-config": 0.81.1
     "@react-native/new-app-screen": 0.81.1
@@ -10303,7 +10298,6 @@ __metadata:
     react: 19.1.0
     react-native: 0.81.1
     react-native-builder-bob: ^0.40.13
-    react-native-document-picker: ^9.3.1
     react-native-image-picker: ^8.2.1
     react-native-monorepo-config: ^0.1.9
     react-native-safe-area-context: ^5.5.2

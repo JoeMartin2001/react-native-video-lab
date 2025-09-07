@@ -153,7 +153,10 @@
     "type": "modules",
     "jsSrcsDir": "src",
     "android": {
-      "javaPackageName": "com.videolab"
+      "javaPackageName": "com.videolab",
+      "gradleProperties": {
+        "newArchEnabled": true
+      }
     }
   },
   "create-react-native-library": {
