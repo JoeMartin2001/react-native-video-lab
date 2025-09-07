@@ -1,23 +1,19 @@
-import {
-  Text,
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { Text, View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
-import { UploadVideoView } from './components/UploadVideoView';
 import { TrimVideoView } from './components/trim';
+import { RadioButton } from './components/RadioButton';
+import { MergeVideoView } from './components/merge';
+
+const VideoLabMode = {
+  Trim: 'Trim',
+  Merge: 'Merge',
+} as const;
 
 export default function App() {
-  const [videoUri, setVideoUri] = useState<string | null>(null);
-  const [trimmedVideoUri, setTrimmedVideoUri] = useState<string | null>(null);
-
-  const resetApp = () => {
-    setVideoUri(null);
-    setTrimmedVideoUri(null);
-  };
+  const [videoLabMode, setVideoLabMode] = useState<keyof typeof VideoLabMode>(
+    VideoLabMode.Trim
+  );
 
   return (
     <SafeAreaProvider>
@@ -28,25 +24,25 @@ export default function App() {
         >
           <View style={styles.header}>
             <Text style={styles.title}>Video Lab</Text>
-            <Text style={styles.subtitle}>Trim your videos with ease</Text>
+            <Text style={styles.subtitle}>Edit your videos with ease</Text>
           </View>
 
-          {/* Upload Section */}
-          <UploadVideoView videoUri={videoUri} onUpload={setVideoUri} />
+          <View style={styles.modeSelector}>
+            {Object.values(VideoLabMode).map((mode) => (
+              <RadioButton
+                key={mode}
+                title={mode}
+                isActive={videoLabMode === mode}
+                onPress={() => setVideoLabMode(mode)}
+              />
+            ))}
+          </View>
 
           {/* Trim Section */}
-          <TrimVideoView
-            videoUri={videoUri}
-            trimmedVideoUri={trimmedVideoUri}
-            setTrimmedVideoUri={setTrimmedVideoUri}
-          />
+          {videoLabMode === VideoLabMode.Trim && <TrimVideoView />}
 
-          {/* Reset Button */}
-          {(videoUri || trimmedVideoUri) && (
-            <TouchableOpacity style={styles.resetButton} onPress={resetApp}>
-              <Text style={styles.resetButtonText}>🔄 Start Over</Text>
-            </TouchableOpacity>
-          )}
+          {/* Merge Section */}
+          {videoLabMode === VideoLabMode.Merge && <MergeVideoView />}
         </ScrollView>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -78,18 +74,7 @@ const styles = StyleSheet.create({
     color: '#7f8c8d',
     textAlign: 'center',
   },
-
-  resetButton: {
-    backgroundColor: '#95a5a6',
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  resetButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '500',
+  modeSelector: {
+    marginBottom: 20,
   },
 });

@@ -1,100 +1,106 @@
+import { useState } from 'react';
 import {
+  View,
+  Text,
+  TouchableOpacity,
   ActivityIndicator,
   Alert,
   StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
 } from 'react-native';
 import { VideoView } from '../VideoView';
-import { useState } from 'react';
-import * as VideoLab from 'react-native-video-lab';
 import { UploadVideoView } from '../UploadVideoView';
+import * as VideoLab from 'react-native-video-lab';
 
-export const TrimVideoView = () => {
-  const [videoUri, setVideoUri] = useState<string | null>(null);
-  const [trimmedVideoUri, setTrimmedVideoUri] = useState<string | null>(null);
-  const [videoDuration, setVideoDuration] = useState<number | undefined>(
-    undefined
-  );
-
+export const MergeVideoView = () => {
+  const [video1Uri, setVideo1Uri] = useState<string | null>(null);
+  const [video2Uri, setVideo2Uri] = useState<string | null>(null);
+  const [mergedVideoUri, setMergedVideoUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleTrim = () => {
-    if (!videoUri) {
-      Alert.alert('No Video', 'Please select a video first');
+  const handleMerge = () => {
+    if (!video1Uri || !video2Uri) {
+      Alert.alert('Missing Videos', 'Please select both videos to merge');
       return;
     }
 
     setIsProcessing(true);
 
-    VideoLab.trim(videoUri, 0, 5)
+    // Note: This is a placeholder - you'll need to implement the actual merge function
+    VideoLab.merge([video1Uri, video2Uri])
       .then((outputPath) => {
-        console.log('Trimmed video saved at:', outputPath);
-        setTrimmedVideoUri(outputPath);
-        Alert.alert('Success', 'Video trimmed successfully!');
+        setMergedVideoUri(outputPath);
+        Alert.alert('Success', 'Videos merged successfully!');
       })
       .catch((err) => {
-        Alert.alert('Error', 'Failed to trim video. Please try again.');
-        console.error('Trim failed:', err);
+        Alert.alert('Error', 'Failed to merge videos. Please try again.');
+        console.error('Merge failed:', err);
       })
       .finally(() => {
         setIsProcessing(false);
       });
   };
 
-  const onUpload = (uri: string | null, duration: number | undefined) => {
-    setVideoUri(uri);
-    setVideoDuration(duration);
+  const onUpload1 = (uri: string | null, _duration: number | undefined) => {
+    setVideo1Uri(uri);
+  };
+
+  const onUpload2 = (uri: string | null, _duration: number | undefined) => {
+    setVideo2Uri(uri);
   };
 
   const resetApp = () => {
-    setVideoUri(null);
-    setTrimmedVideoUri(null);
-    setVideoDuration(undefined);
+    setVideo1Uri(null);
+    setVideo2Uri(null);
+    setMergedVideoUri(null);
   };
 
   return (
     <>
-      <UploadVideoView videoUri={videoUri} onUpload={onUpload} />
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>First Video</Text>
+        <UploadVideoView videoUri={video1Uri} onUpload={onUpload1} />
+      </View>
 
-      {videoUri && (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Second Video</Text>
+        <UploadVideoView videoUri={video2Uri} onUpload={onUpload2} />
+      </View>
+
+      {video1Uri && video2Uri && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Trim Video: {videoDuration} seconds
-          </Text>
-          <Text style={styles.trimDescription}>
-            Trim video to first 5 seconds
+          <Text style={styles.sectionTitle}>Merge Videos</Text>
+          <Text style={styles.mergeDescription}>
+            Combine both videos into one
           </Text>
           <TouchableOpacity
             style={[
-              styles.trimButton,
-              isProcessing && styles.trimButtonDisabled,
+              styles.mergeButton,
+              isProcessing && styles.mergeButtonDisabled,
             ]}
-            onPress={handleTrim}
+            onPress={handleMerge}
             disabled={isProcessing}
           >
             {isProcessing ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
-              <Text style={styles.trimButtonText}>✂️ Trim Video</Text>
+              <Text style={styles.mergeButtonText}>🔗 Merge Videos</Text>
             )}
           </TouchableOpacity>
         </View>
       )}
 
       {/* Result Section */}
-      {trimmedVideoUri && (
+      {mergedVideoUri && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Trimmed Result</Text>
+          <Text style={styles.sectionTitle}>Merged Result</Text>
           <View style={styles.videoContainer}>
-            <VideoView src={trimmedVideoUri} />
+            <VideoView src={mergedVideoUri} />
           </View>
         </View>
       )}
 
       {/* Reset Button */}
-      {(videoUri || trimmedVideoUri) && (
+      {(video1Uri || video2Uri || mergedVideoUri) && (
         <TouchableOpacity style={styles.resetButton} onPress={resetApp}>
           <Text style={styles.resetButtonText}>🔄 Start Over</Text>
         </TouchableOpacity>
@@ -124,20 +130,19 @@ const styles = StyleSheet.create({
     color: '#2c3e50',
     marginBottom: 16,
   },
-
-  trimDescription: {
+  mergeDescription: {
     fontSize: 14,
     color: '#7f8c8d',
     marginBottom: 16,
     textAlign: 'center',
   },
-  trimButton: {
-    backgroundColor: '#e74c3c',
+  mergeButton: {
+    backgroundColor: '#9b59b6',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 24,
     alignItems: 'center',
-    shadowColor: '#e74c3c',
+    shadowColor: '#9b59b6',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -146,21 +151,19 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  trimButtonDisabled: {
+  mergeButtonDisabled: {
     backgroundColor: '#bdc3c7',
     shadowOpacity: 0,
     elevation: 0,
   },
-  trimButtonText: {
+  mergeButtonText: {
     color: 'white',
     fontSize: 18,
     fontWeight: '600',
   },
-
   videoContainer: {
     alignItems: 'center',
   },
-
   resetButton: {
     backgroundColor: '#95a5a6',
     borderRadius: 12,

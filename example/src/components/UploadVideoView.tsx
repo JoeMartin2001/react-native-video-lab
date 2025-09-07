@@ -5,7 +5,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 
 type Props = {
   videoUri: string | null;
-  onUpload: (uri: string | null) => void;
+  onUpload: (uri: string | null, duration: number | undefined) => void;
 };
 
 export const UploadVideoView = (props: Props) => {
@@ -23,9 +23,16 @@ export const UploadVideoView = (props: Props) => {
       },
       (response) => {
         if (response.assets && response.assets[0]) {
-          console.log('Uploaded video:', response.assets[0].uri);
-          onUpload(response.assets[0].uri || null);
+          const asset = response.assets[0];
+          const roundedDuration = asset.duration
+            ? Math.round(asset.duration)
+            : undefined;
+
+          onUpload(asset.uri || null, roundedDuration);
           setIsUploading(false);
+
+          console.log('Duration:', roundedDuration);
+          console.log('Uploaded video:', asset.uri);
 
           return;
         }
