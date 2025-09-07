@@ -160,5 +160,8 @@
     "languages": "kotlin-objc",
     "type": "turbo-module",
     "version": "0.54.2"
+  },
+  "dependencies": {
+    "react-native-safe-area-context": "^5.6.1"
   }
 }
