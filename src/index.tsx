@@ -14,9 +14,10 @@ export function merge(paths: string[]): Promise<string> {
 
 export function addAudio(
   videoPath: string,
-  audioPath: string
+  audioPath: string,
+  mode: 'replace' | 'mix'
 ): Promise<string> {
-  return VideoLab.addAudio(videoPath, audioPath);
+  return VideoLab.addAudio(videoPath, audioPath, mode);
 }
 
 export function applyFilter(

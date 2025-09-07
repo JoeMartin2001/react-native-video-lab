@@ -1,72 +1,61 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { VideoView } from './VideoView';
-import { launchImageLibrary } from 'react-native-image-picker';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import DocumentPicker from 'react-native-document-picker';
 
 type Props = {
   label?: string;
-  videoUri: string | null;
-  onUpload: (uri: string | null, duration: number | undefined) => void;
+  audioUri?: string | null;
+  onUpload?: (uri: string | null) => void;
 };
 
-export const UploadVideoView = (props: Props) => {
-  const { label = 'Select Video', videoUri, onUpload } = props;
+export const UploadAudioView = (props: Props) => {
+  const { label = 'Select Audio', audioUri: propAudioUri, onUpload } = props;
 
+  const [audioUri, setAudioUri] = useState<string | null>(propAudioUri || null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleUpload = () => {
+  async function handleUpload() {
     setIsUploading(true);
 
-    launchImageLibrary(
-      {
-        mediaType: 'video',
-        quality: 0.8,
-      },
-      (response) => {
-        if (response.assets && response.assets[0]) {
-          const asset = response.assets[0];
-          const roundedDuration = asset.duration
-            ? Math.round(asset.duration)
-            : undefined;
+    try {
+      const res = await DocumentPicker.pickSingle({
+        type: [DocumentPicker.types.audio],
+      });
 
-          onUpload(asset.uri || null, roundedDuration);
-          setIsUploading(false);
+      setAudioUri(res.uri);
+      onUpload?.(res.uri);
 
-          console.log('Duration:', roundedDuration);
-          console.log('Uploaded video:', asset.uri);
-
-          return;
-        }
-
-        if (response.didCancel) {
-          setIsUploading(false);
-
-          return;
-        }
-
-        Alert.alert('Error', 'Failed to upload video. Please try again.');
-        console.error('Upload failed:', response);
-        setIsUploading(false);
+      console.log('Picked audio:', res.uri);
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        console.log('User cancelled');
+      } else {
+        throw err;
       }
-    );
-  };
+    } finally {
+      setIsUploading(false);
+    }
+  }
 
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{label}</Text>
-      {!videoUri ? (
+      {!audioUri ? (
         <TouchableOpacity
           style={styles.uploadButton}
           onPress={handleUpload}
           disabled={isUploading}
         >
           <Text style={styles.uploadButtonText}>
-            {isUploading ? 'Uploading...' : '📹 Choose Video'}
+            {isUploading ? 'Uploading...' : '📹 Choose Audio'}
           </Text>
         </TouchableOpacity>
       ) : (
-        <View style={styles.videoContainer}>
-          <VideoView src={videoUri} />
+        <View style={styles.audioContainer}>
+          <Text style={styles.audioLabel}>Selected Audio</Text>
+          <Text style={styles.audioUri} numberOfLines={2}>
+            {audioUri?.split('/').pop() || 'Unknown file'}
+          </Text>
 
           <TouchableOpacity
             style={styles.changeButton}
@@ -74,7 +63,7 @@ export const UploadVideoView = (props: Props) => {
             disabled={isUploading}
           >
             <Text style={styles.changeButtonText}>
-              {isUploading ? 'Uploading...' : 'Change Video'}
+              {isUploading ? 'Uploading...' : 'Change Audio'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -105,14 +94,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  videoContainer: {
+  audioContainer: {
     alignItems: 'center',
   },
-  video: {
-    width: '100%',
-    height: 200,
-    borderRadius: 12,
-    backgroundColor: '#ecf0f1',
+  audioLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#34495e',
+    marginBottom: 8,
+  },
+  audioUri: {
+    fontSize: 14,
+    color: '#7f8c8d',
+    textAlign: 'center',
+    marginBottom: 12,
+    paddingHorizontal: 16,
   },
 
   uploadButton: {

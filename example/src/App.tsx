@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { TrimVideoView } from './components/trim';
 import { RadioButton } from './components/RadioButton';
 import { MergeVideoView } from './components/merge';
+import { AddAudioView } from './components/add-audio';
 
 const VideoLabMode = {
   Trim: 'Trim',
   Merge: 'Merge',
+  AddAudio: 'AddAudio',
 } as const;
 
 export default function App() {
@@ -43,6 +45,9 @@ export default function App() {
 
           {/* Merge Section */}
           {videoLabMode === VideoLabMode.Merge && <MergeVideoView />}
+
+          {/* Add Audio Section */}
+          {videoLabMode === VideoLabMode.AddAudio && <AddAudioView />}
         </ScrollView>
       </SafeAreaView>
     </SafeAreaProvider>

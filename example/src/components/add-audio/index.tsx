@@ -1,57 +1,57 @@
+import { useState } from 'react';
 import {
+  View,
+  Text,
+  TouchableOpacity,
   ActivityIndicator,
   Alert,
   StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
 } from 'react-native';
-import { VideoView } from '../VideoView';
-import { useState } from 'react';
-import * as VideoLab from 'react-native-video-lab';
 import { UploadVideoView } from '../UploadVideoView';
+import { UploadAudioView } from '../UploadAudioView';
+import { VideoView } from '../VideoView';
+import * as VideoLab from 'react-native-video-lab';
 
-export const TrimVideoView = () => {
+export const AddAudioView = () => {
   const [videoUri, setVideoUri] = useState<string | null>(null);
-  const [trimmedVideoUri, setTrimmedVideoUri] = useState<string | null>(null);
-  const [videoDuration, setVideoDuration] = useState<number | undefined>(
-    undefined
-  );
-
+  const [audioUri, setAudioUri] = useState<string | null>(null);
+  const [resultVideoUri, setResultVideoUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleTrim = () => {
-    if (!videoUri) {
-      Alert.alert('No Video', 'Please select a video first');
+  const handleAddAudio = () => {
+    if (!videoUri || !audioUri) {
+      Alert.alert('Missing Files', 'Please select both video and audio files');
       return;
     }
 
     setIsProcessing(true);
 
-    VideoLab.trim(videoUri, 0, 5)
+    VideoLab.addAudio(videoUri, audioUri, 'replace')
       .then((outputPath) => {
-        console.log('Trimmed video saved at:', outputPath);
-        setTrimmedVideoUri(outputPath);
-        Alert.alert('Success', 'Video trimmed successfully!');
+        setResultVideoUri(outputPath);
+        Alert.alert('Success', 'Audio added to video successfully!');
       })
       .catch((err) => {
-        Alert.alert('Error', 'Failed to trim video. Please try again.');
-        console.error('Trim failed:', err);
+        Alert.alert('Error', 'Failed to add audio to video. Please try again.');
+        console.error('Add audio failed:', err);
       })
       .finally(() => {
         setIsProcessing(false);
       });
   };
 
-  const onUpload = (uri: string | null, duration: number | undefined) => {
+  const onVideoUpload = (uri: string | null, _duration: number | undefined) => {
     setVideoUri(uri);
-    setVideoDuration(duration);
+  };
+
+  const onAudioUpload = (uri: string | null) => {
+    setAudioUri(uri);
   };
 
   const resetApp = () => {
     setVideoUri(null);
-    setTrimmedVideoUri(null);
-    setVideoDuration(undefined);
+    setAudioUri(null);
+    setResultVideoUri(null);
   };
 
   return (
@@ -59,46 +59,50 @@ export const TrimVideoView = () => {
       <UploadVideoView
         label="Select Video"
         videoUri={videoUri}
-        onUpload={onUpload}
+        onUpload={onVideoUpload}
       />
 
-      {videoUri && (
+      <UploadAudioView
+        label="Select Audio"
+        audioUri={audioUri}
+        onUpload={onAudioUpload}
+      />
+
+      {videoUri && audioUri && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Trim Video: {videoDuration} seconds
-          </Text>
-          <Text style={styles.trimDescription}>
-            Trim video to first 5 seconds
+          <Text style={styles.sectionTitle}>Add Audio to Video</Text>
+          <Text style={styles.description}>
+            Combine the selected audio with the video
           </Text>
           <TouchableOpacity
             style={[
-              styles.trimButton,
-              isProcessing && styles.trimButtonDisabled,
+              styles.addAudioButton,
+              isProcessing && styles.addAudioButtonDisabled,
             ]}
-            onPress={handleTrim}
+            onPress={handleAddAudio}
             disabled={isProcessing}
           >
             {isProcessing ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
-              <Text style={styles.trimButtonText}>✂️ Trim Video</Text>
+              <Text style={styles.addAudioButtonText}>🎵 Add Audio</Text>
             )}
           </TouchableOpacity>
         </View>
       )}
 
       {/* Result Section */}
-      {trimmedVideoUri && (
+      {resultVideoUri && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Trimmed Result</Text>
+          <Text style={styles.sectionTitle}>Result with Audio</Text>
           <View style={styles.videoContainer}>
-            <VideoView src={trimmedVideoUri} />
+            <VideoView src={resultVideoUri} />
           </View>
         </View>
       )}
 
       {/* Reset Button */}
-      {(videoUri || trimmedVideoUri) && (
+      {(videoUri || audioUri || resultVideoUri) && (
         <TouchableOpacity style={styles.resetButton} onPress={resetApp}>
           <Text style={styles.resetButtonText}>🔄 Start Over</Text>
         </TouchableOpacity>
@@ -128,20 +132,19 @@ const styles = StyleSheet.create({
     color: '#2c3e50',
     marginBottom: 16,
   },
-
-  trimDescription: {
+  description: {
     fontSize: 14,
     color: '#7f8c8d',
     marginBottom: 16,
     textAlign: 'center',
   },
-  trimButton: {
-    backgroundColor: '#e74c3c',
+  addAudioButton: {
+    backgroundColor: '#f39c12',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 24,
     alignItems: 'center',
-    shadowColor: '#e74c3c',
+    shadowColor: '#f39c12',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -150,21 +153,19 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  trimButtonDisabled: {
+  addAudioButtonDisabled: {
     backgroundColor: '#bdc3c7',
     shadowOpacity: 0,
     elevation: 0,
   },
-  trimButtonText: {
+  addAudioButtonText: {
     color: 'white',
     fontSize: 18,
     fontWeight: '600',
   },
-
   videoContainer: {
     alignItems: 'center',
   },
-
   resetButton: {
     backgroundColor: '#95a5a6',
     borderRadius: 12,

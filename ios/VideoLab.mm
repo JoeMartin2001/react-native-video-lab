@@ -171,14 +171,110 @@ RCT_EXPORT_MODULE()
 // TS: addAudio(videoPath: string, audioPath: string): Promise<string>
 - (void)addAudio:(NSString *)videoPath
        audioPath:(NSString *)audioPath
+            mode:(NSString *)mode   // 👈 new argument: "replace" or "mix"
         resolve:(RCTPromiseResolveBlock)resolve
          reject:(RCTPromiseRejectBlock)reject
 {
-  NSLog(@"[VideoLab] addAudio called with videoPath: %@, audioPath: %@", videoPath, audioPath);
+  NSLog(@"[VideoLab] addAudio called with videoPath: %@, audioPath: %@, mode: %@", videoPath, audioPath, mode);
 
+  NSURL *videoURL = [NSURL URLWithString:videoPath];
+  if (![videoURL isFileURL]) {
+    videoURL = [NSURL fileURLWithPath:videoPath];
+  }
+
+  NSURL *audioURL = [NSURL URLWithString:audioPath];
+  if (![audioURL isFileURL]) {
+    audioURL = [NSURL fileURLWithPath:audioPath];
+  }
+
+  AVAsset *videoAsset = [AVAsset assetWithURL:videoURL];
+  AVAsset *audioAsset = [AVAsset assetWithURL:audioURL];
+
+  if (!videoAsset || !audioAsset) {
+    reject(@"LOAD_ERROR", @"Failed to load video or audio asset", nil);
+    return;
+  }
+
+  AVMutableComposition *composition = [AVMutableComposition composition];
+
+  // Insert video track
+  AVAssetTrack *videoTrack = [[videoAsset tracksWithMediaType:AVMediaTypeVideo] firstObject];
+  if (videoTrack) {
+    NSError *error = nil;
+    AVMutableCompositionTrack *compositionVideoTrack =
+      [composition addMutableTrackWithMediaType:AVMediaTypeVideo
+                               preferredTrackID:kCMPersistentTrackID_Invalid];
+    [compositionVideoTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, videoAsset.duration)
+                                   ofTrack:videoTrack
+                                    atTime:kCMTimeZero
+                                     error:&error];
+    if (error) {
+      reject(@"INSERT_ERROR", @"Failed to insert video track", error);
+      return;
+    }
+  }
+
+  NSError *error = nil;
+
+  // If mode == "mix", also keep original audio
+  if ([mode isEqualToString:@"mix"]) {
+    AVAssetTrack *originalAudioTrack = [[videoAsset tracksWithMediaType:AVMediaTypeAudio] firstObject];
+    if (originalAudioTrack) {
+      AVMutableCompositionTrack *compositionOriginalAudio =
+        [composition addMutableTrackWithMediaType:AVMediaTypeAudio
+                                 preferredTrackID:kCMPersistentTrackID_Invalid];
+      [compositionOriginalAudio insertTimeRange:CMTimeRangeMake(kCMTimeZero, videoAsset.duration)
+                                        ofTrack:originalAudioTrack
+                                         atTime:kCMTimeZero
+                                          error:&error];
+      if (error) {
+        reject(@"INSERT_ERROR", @"Failed to insert original audio track", error);
+        return;
+      }
+    }
+  }
+
+  // Always add the new audio track
+  AVAssetTrack *newAudioTrack = [[audioAsset tracksWithMediaType:AVMediaTypeAudio] firstObject];
+  if (newAudioTrack) {
+    AVMutableCompositionTrack *compositionNewAudio =
+      [composition addMutableTrackWithMediaType:AVMediaTypeAudio
+                               preferredTrackID:kCMPersistentTrackID_Invalid];
+    [compositionNewAudio insertTimeRange:CMTimeRangeMake(kCMTimeZero, videoAsset.duration)
+                                 ofTrack:newAudioTrack
+                                  atTime:kCMTimeZero
+                                   error:&error];
+    if (error) {
+      reject(@"INSERT_ERROR", @"Failed to insert new audio track", error);
+      return;
+    }
+  }
+
+  // Export
   NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"with-audio.mp4"];
-  resolve(outputPath);
+  NSURL *outputURL = [NSURL fileURLWithPath:outputPath];
+  [[NSFileManager defaultManager] removeItemAtURL:outputURL error:nil];
+
+  AVAssetExportSession *exportSession =
+    [[AVAssetExportSession alloc] initWithAsset:composition
+                                     presetName:AVAssetExportPresetHighestQuality];
+
+  exportSession.outputURL = outputURL;
+  exportSession.outputFileType = AVFileTypeMPEG4;
+
+  [exportSession exportAsynchronouslyWithCompletionHandler:^{
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if (exportSession.status == AVAssetExportSessionStatusCompleted) {
+        NSLog(@"[VideoLab] ✅ AddAudio success: %@", outputPath);
+        resolve(outputPath);
+      } else {
+        NSLog(@"[VideoLab] ❌ AddAudio failed: %@", exportSession.error);
+        reject(@"EXPORT_FAILED", @"Failed to add audio", exportSession.error);
+      }
+    });
+  }];
 }
+
 
 // TS: applyFilter(path: string, filter: 'sepia' | 'mono' | 'invert'): Promise<string>
 - (void)applyFilter:(NSString *)path

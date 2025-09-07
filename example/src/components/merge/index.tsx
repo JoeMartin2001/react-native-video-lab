@@ -56,37 +56,33 @@ export const MergeVideoView = () => {
 
   return (
     <>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>First Video</Text>
-        <UploadVideoView videoUri={video1Uri} onUpload={onUpload1} />
-      </View>
+      <UploadVideoView
+        label="First Video"
+        videoUri={video1Uri}
+        onUpload={onUpload1}
+      />
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Second Video</Text>
-        <UploadVideoView videoUri={video2Uri} onUpload={onUpload2} />
-      </View>
+      <UploadVideoView
+        label="Second Video"
+        videoUri={video2Uri}
+        onUpload={onUpload2}
+      />
 
       {video1Uri && video2Uri && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Merge Videos</Text>
-          <Text style={styles.mergeDescription}>
-            Combine both videos into one
-          </Text>
-          <TouchableOpacity
-            style={[
-              styles.mergeButton,
-              isProcessing && styles.mergeButtonDisabled,
-            ]}
-            onPress={handleMerge}
-            disabled={isProcessing}
-          >
-            {isProcessing ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={styles.mergeButtonText}>🔗 Merge Videos</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={[
+            styles.mergeButton,
+            isProcessing && styles.mergeButtonDisabled,
+          ]}
+          onPress={handleMerge}
+          disabled={isProcessing}
+        >
+          {isProcessing ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.mergeButtonText}>🔗 Merge Videos</Text>
+          )}
+        </TouchableOpacity>
       )}
 
       {/* Result Section */}
@@ -111,18 +107,7 @@ export const MergeVideoView = () => {
 
 const styles = StyleSheet.create({
   section: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    marginTop: 25,
   },
   sectionTitle: {
     fontSize: 20,
