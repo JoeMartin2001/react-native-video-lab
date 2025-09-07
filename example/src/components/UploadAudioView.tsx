@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { pick } from '@react-native-documents/picker';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { pick, types } from '@react-native-documents/picker';
 
 type Props = {
   label?: string;
@@ -19,8 +19,16 @@ export const UploadAudioView = (props: Props) => {
 
     try {
       const [res] = await pick({
-        type: 'audio',
+        type: types.audio,
       });
+
+      const ALLOWED_EXTENSIONS = ['audio/mp4'];
+
+      if (!ALLOWED_EXTENSIONS.includes(res.type!)) {
+        return Alert.alert(
+          `Only "${ALLOWED_EXTENSIONS.join(', ')}" audio files are allowed`
+        );
+      }
 
       setAudioUri(res.uri);
       onUpload?.(res.uri);
