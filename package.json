@@ -1,7 +1,7 @@
 {
   "name": "react-native-video-lab",
   "version": "0.2.0",
-  "description": "React Native Video Lab",
+  "description": "Small, fast, native helpers for common video edits in React Native (trim, merge, add audio, filters).",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
   "exports": {
@@ -42,8 +42,18 @@
   },
   "keywords": [
     "react-native",
-    "ios",
-    "android"
+    "video",
+    "video-processing",
+    "video-editing",
+    "video-filters",
+    "trim",
+    "merge",
+    "audio",
+    "ffmpeg-free",
+    "mediacodec",
+    "avfoundation",
+    "expo",
+    "rn"
   ],
   "repository": {
     "type": "git",
